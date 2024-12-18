@@ -24,7 +24,7 @@ class StreamCloudflarePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "stream_cloudflare")
         channel.setMethodCallHandler(this)
 
-        context = flutterPluginBinding.applicationContext
+        val context: Context = flutterPluginBinding.applicationContext
         trackSelector = DefaultTrackSelector(context)
         player = ExoPlayer.Builder(context).setTrackSelector(trackSelector).build()
     }

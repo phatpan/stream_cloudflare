@@ -6,7 +6,7 @@ public class StreamCloudflarePlugin: NSObject, FlutterPlugin {
     private var player: AVPlayer?
     private var playerItem: AVPlayerItem?
     private var playerLayer: AVPlayerLayer?
-    private var currentViewController: UIViewController? // For displaying the player
+    private var currentViewController: UIViewController? 
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "stream_cloudflare", binaryMessenger: registrar.messenger())
