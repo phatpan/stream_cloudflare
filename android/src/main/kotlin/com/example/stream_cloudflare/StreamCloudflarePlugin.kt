@@ -1,24 +1,30 @@
 package com.example.stream_cloudflare
 
 import android.content.Context
+import android.util.Log
 import androidx.annotation.NonNull
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.trackselection.*
+import com.google.android.exoplayer2.ui.PlayerView
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import com.google.android.exoplayer2.source.*
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 
 class StreamCloudflarePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var channel: MethodChannel
     private lateinit var player: ExoPlayer
     private lateinit var trackSelector: DefaultTrackSelector
+    private lateinit var context: Context
+    private var playerView: PlayerView? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "stream_cloudflare")
         channel.setMethodCallHandler(this)
 
-        val context: Context = flutterPluginBinding.applicationContext
+        context = flutterPluginBinding.applicationContext
         trackSelector = DefaultTrackSelector(context)
         player = ExoPlayer.Builder(context).setTrackSelector(trackSelector).build()
     }
@@ -35,18 +41,18 @@ class StreamCloudflarePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 }
             }
             "setAudioTrack" -> {
-                val trackId: Int? = call.argument("trackId")
-                if (trackId != null) {
-                    setAudioTrack(trackId)
+                val trackIndex: Int? = call.argument("trackId")
+                if (trackIndex != null) {
+                    setAudioTrack(trackIndex)
                     result.success(null)
                 } else {
                     result.error("INVALID_ARGUMENT", "trackId is required", null)
                 }
             }
             "setSubtitleTrack" -> {
-                val subtitleTrackId: Int? = call.argument("trackId")
-                if (subtitleTrackId != null) {
-                    setSubtitleTrack(subtitleTrackId)
+                val trackIndex: Int? = call.argument("trackId")
+                if (trackIndex != null) {
+                    setSubtitleTrack(trackIndex)
                     result.success(null)
                 } else {
                     result.error("INVALID_ARGUMENT", "trackId is required", null)
@@ -59,26 +65,57 @@ class StreamCloudflarePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     private fun playVideo(videoId: String) {
         val url = "https://videodelivery.net/$videoId/manifest/video.m3u8"
-        val mediaItem = MediaItem.fromUri(url)
-        player.setMediaItem(mediaItem)
+        val dataSourceFactory = DefaultDataSource.Factory(context)
+        val mediaSource: MediaSource = HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(url))
+
+        player.setMediaSource(mediaSource)
         player.prepare()
         player.play()
+
+        Log.d("StreamCloudflarePlugin", "Playing video: $url")
     }
 
-    private fun setAudioTrack(trackId: Int) {
-        trackSelector.setParameters(
-            trackSelector.buildUponParameters().setPreferredAudioLanguage(trackId.toString())
-        )
+    private fun setAudioTrack(trackIndex: Int) {
+        val mappedTrackInfo = trackSelector.currentMappedTrackInfo
+        if (mappedTrackInfo != null) {
+            for (rendererIndex in 0 until mappedTrackInfo.rendererCount) {
+                val trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex)
+                for (groupIndex in 0 until trackGroups.length) {
+                    if (trackGroups.get(groupIndex).type == C.TRACK_TYPE_AUDIO) {
+                        val parameters = trackSelector.buildUponParameters()
+                            .setSelectionOverride(rendererIndex, trackGroups, SelectionOverride(groupIndex, trackIndex))
+                        trackSelector.setParameters(parameters)
+                        Log.d("StreamCloudflarePlugin", "Audio track set to index: $trackIndex")
+                        return
+                    }
+                }
+            }
+        }
+        Log.e("StreamCloudflarePlugin", "Failed to set audio track: Invalid index")
     }
 
-    private fun setSubtitleTrack(trackId: Int) {
-        trackSelector.setParameters(
-            trackSelector.buildUponParameters().setPreferredTextLanguage(trackId.toString())
-        )
+    private fun setSubtitleTrack(trackIndex: Int) {
+        val mappedTrackInfo = trackSelector.currentMappedTrackInfo
+        if (mappedTrackInfo != null) {
+            for (rendererIndex in 0 until mappedTrackInfo.rendererCount) {
+                val trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex)
+                for (groupIndex in 0 until trackGroups.length) {
+                    if (trackGroups.get(groupIndex).type == C.TRACK_TYPE_TEXT) {
+                        val parameters = trackSelector.buildUponParameters()
+                            .setSelectionOverride(rendererIndex, trackGroups, SelectionOverride(groupIndex, trackIndex))
+                        trackSelector.setParameters(parameters)
+                        Log.d("StreamCloudflarePlugin", "Subtitle track set to index: $trackIndex")
+                        return
+                    }
+                }
+            }
+        }
+        Log.e("StreamCloudflarePlugin", "Failed to set subtitle track: Invalid index")
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
         player.release()
+        playerView = null
     }
 }
