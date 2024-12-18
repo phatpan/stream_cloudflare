@@ -10,12 +10,24 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
   flutter: ">=3.0.0"
 
+# Dependencies for core plugin functionality
 dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.1.7
 
+# Dev dependencies for testing and linting
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+
+# Platforms supported by the plugin
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.example.stream_cloudflare
+        pluginClass: StreamCloudflarePlugin
+      ios:
+        pluginClass: StreamCloudflarePlugin
