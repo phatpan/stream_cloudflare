@@ -52,6 +52,7 @@ class StreamCloudflarePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     result.error("INVALID_ARGUMENT", "trackId is required", null)
                 }
             }
+            "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
             else -> result.notImplemented()
         }
     }

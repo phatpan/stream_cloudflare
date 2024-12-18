@@ -9,7 +9,7 @@ class MockStreamCloudflarePlatform
     implements StreamCloudflarePlatform {
 
   @override
-  Future<String?> getPlatformVersion() => Future.value('42');
+  Future<String?> getPlatformVersion() => Future.value('42'); 
 }
 
 void main() {
@@ -22,8 +22,11 @@ void main() {
   test('getPlatformVersion', () async {
     StreamCloudflare streamCloudflarePlugin = StreamCloudflare();
     MockStreamCloudflarePlatform fakePlatform = MockStreamCloudflarePlatform();
+
     StreamCloudflarePlatform.instance = fakePlatform;
 
     expect(await streamCloudflarePlugin.getPlatformVersion(), '42');
+
+    StreamCloudflarePlatform.instance = initialPlatform;
   });
 }

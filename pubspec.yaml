@@ -13,7 +13,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # Add your dependencies here (e.g., platform channels, ExoPlayer wrapper)
+  plugin_platform_interface: ^2.1.7
 
 dev_dependencies:
   flutter_test:

@@ -29,6 +29,8 @@ public class StreamCloudflarePlugin: NSObject, FlutterPlugin {
       let trackId = args["trackId"] as! Int
       setSubtitleTrack(trackId: trackId)
       result(nil)
+    case "getPlatformVersion":
+      result("iOS " + UIDevice.current.systemVersion)
     default:
       result(FlutterMethodNotImplemented)
     }
