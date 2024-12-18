@@ -8,11 +8,6 @@ import Flutter
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         GeneratedPluginRegistrant.register(with: self)
-
-        if let registrar = self.registrar(forPlugin: "stream_cloudflare") {
-            StreamCloudflarePlugin.register(with: registrar)
-        }
-
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 }
